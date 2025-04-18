@@ -1,0 +1,70 @@
+
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+config.background_color = "#1a1a1a"
+
+class PolarVsCartesian(Scene):
+    def construct(self):
+        label = MathTex(r"f(\theta) = 2·sin(4\theta)", color=WHITE).shift(UP * 9).scale(1.5)
+
+        polar_plane = PolarPlane(
+            size=5.5,
+            background_line_style={"stroke_opacity": 0.5}
+        ).shift(UP * 3)
+    
+        polar_graph = polar_plane.plot_polar_graph(
+            lambda theta: 2 * np.sin(4 * theta),
+            [0, 2 * PI],
+            stroke_color=WHITE,
+            stroke_width=2,
+        )
+
+        angle_labels = VGroup()
+        label_radius = 4.2 
+
+        angle_data = [
+            (0, r"0"),
+            (PI/4, r"\frac{\pi}{4}"),
+            (PI/2, r"\frac{\pi}{2}"),
+            (3*PI/4, r"\frac{3\pi}{4}"),
+            (PI, r"\pi"),
+            (5*PI/4, r"\frac{5\pi}{4}"),
+            (3*PI/2, r"\frac{3\pi}{2}"),
+            (7*PI/4, r"\frac{7\pi}{4}"),
+        ]
+
+        for angle, latex in angle_data:
+            label_point = polar_plane.polar_to_point(label_radius, angle)
+            label = MathTex(latex).scale(0.4)
+            direction = np.array([np.cos(angle), np.sin(angle), 0])
+            label.move_to(label_point + 0.2 * direction)
+            angle_labels.add(label)
+
+        cartesian_axes = Axes(
+            x_range=[0, 2 * PI, PI / 2],
+            y_range=[-2.5, 2.5, 1],
+            x_length=8,
+            y_length=4,
+            axis_config={"include_tip": False}
+        ).shift(DOWN * 2.5)
+        
+        cartesian_graph = cartesian_axes.plot(lambda x: 2 * np.sin(4 * x),color=BLUE)
+
+        self.play(
+            Create(polar_plane), Write(label),
+            Create(cartesian_axes),
+        )
+        self.wait(0.5)
+
+        self.play(FadeIn(angle_labels), run_time=2)
+
+        self.play(
+            Create(polar_graph, run_time=10),
+            Create(cartesian_graph, run_time=10)
+        )
+        self.wait(2)

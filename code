@@ -1,0 +1,59 @@
+
+
+from manim import *
+import numpy as np
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+config.background_color = "#1a1a1a"
+
+class Euler3D(ThreeDScene):
+    def construct(self):
+        self.set_camera_orientation(phi=0 * DEGREES, theta=-90 * DEGREES)
+        axes = ThreeDAxes(
+            x_range=[0, 4, 1],
+            y_range=[-1.5, 1.5, 1],
+            z_range=[-1.5, 1.5, 1],
+            x_length=6,
+            y_length=3,
+            z_length=3,
+        )
+
+        t_label = MathTex("t").next_to(axes.x_axis.get_end(), DOWN)
+        re_label = MathTex("Re").next_to(axes.y_axis.get_end(), LEFT)
+        im_label = MathTex("Im").next_to(axes.z_axis.get_end(), OUT)
+        self.add(axes, t_label, re_label, im_label)
+        eqn = MathTex("z = e^{i\\pi t}", font_size=42).to_corner(UL).shift(DOWN * 0.5)
+        domain = MathTex("t \\in [0, 4]", font_size=36).next_to(eqn, DOWN)
+        self.play(Write(eqn), FadeIn(domain))
+        self.wait(1)
+
+        def euler_curve(t):
+            return axes.c2p(t, np.cos(PI * t), np.sin(PI * t))
+
+        time_tracker = ValueTracker(0)
+        traced_curve = always_redraw(
+            lambda: ParametricFunction(
+                euler_curve,
+                t_range=[0, time_tracker.get_value()],
+                use_smoothing=False,
+            ).set_color_by_gradient(
+                BLUE, GREEN, YELLOW, RED, PURPLE  # Gradient color shift
+            )
+        )
+        self.add(traced_curve)
+
+        self.play(time_tracker.animate.set_value(4), run_time=5, rate_func=linear)
+        self.wait(1)
+
+        self.move_camera(phi=75 * DEGREES, theta=-45 * DEGREES, run_time=3)
+        self.wait(1)
+
+        self.move_camera(phi=90 * DEGREES, theta=0 * DEGREES, run_time=3)
+        self.wait(1)
+
+        self.move_camera(phi=0 * DEGREES, theta=0 * DEGREES, run_time=3)
+        self.wait(1)

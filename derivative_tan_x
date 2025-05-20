@@ -1,0 +1,60 @@
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+class tanx(Scene):
+    def construct(self):
+        title = Text("Derivative of tan(x)", font="Bahnschrift").scale(0.9).to_edge(UP).set_color_by_gradient(RED, ORANGE, YELLOW)
+        title.stroke_width = 1.7
+        self.play(Write(title))
+        self.wait(.3)
+
+        expr1 = MathTex(r"\frac{d}{dx}[\tan x]").scale(1.2)
+        self.play(Write(expr1))
+        self.wait(1)
+
+        expr2 = MathTex(r"= \frac{d}{dx} \left[ \frac{\sin x}{\cos x} \right]").scale(1.2)
+        self.play(Transform(expr1, expr2))
+        self.wait(1.5)
+
+        expr3 = MathTex(
+            r"= \frac{\cos x \cdot \frac{d}{dx}[\sin x] - \sin x \cdot \frac{d}{dx}[\cos x]}{\cos^2 x}"
+        ).scale(1.1)
+        self.play(Transform(expr1, expr3))
+        self.wait(2)
+
+        expr4 = MathTex(
+            r"= \frac{\cos x \cdot \cos x + \sin x \cdot \sin x}{\cos^2 x}"
+        ).scale(1.2)
+        self.play(Transform(expr1, expr4))
+        self.wait(1.5)
+
+        expr5 = MathTex(
+            r"= \frac{\cos^2 x + \sin^2 x}{\cos^2 x}"
+        ).scale(1.2)
+        self.play(Transform(expr1, expr5))
+        self.wait(1)
+
+        expr6 = MathTex(
+            r"= \frac{1}{\cos^2 x}"
+        ).scale(1.2)
+        self.play(Transform(expr1, expr6))
+        self.wait(1)
+
+        final = MathTex(r"\tan' x = \sec^2 x").scale(1.2)
+        self.play(Transform(expr1, final))
+        self.wait(2)
+
+        expr_list = [expr1, expr2, expr3, expr4, expr5, expr6, final]
+        for expr in expr_list:
+            expr.stroke_width = 1.6
+
+        rounded_box = RoundedRectangle(corner_radius=0.1, stroke_width=3)
+        rounded_box.surround(final, buff=0.3)
+        rounded_box.set_color_by_gradient(RED, ORANGE, YELLOW)
+
+        self.play(Create(rounded_box))
+        self.wait(2)

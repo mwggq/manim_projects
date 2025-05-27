@@ -1,0 +1,164 @@
+from manim import *
+from manim import MovingCameraScene
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+class FTC(MovingCameraScene):
+    def construct(self):
+        axes = Axes(
+            x_range = [-3, 3, 0.5],
+            y_range = [-2, 8, 1],
+            tips=False,
+            axis_config={'color': WHITE,
+                         'stroke_width': 1.3}
+        )
+        axes.shift(UP * 3)
+        graph = axes.plot(
+            lambda x: 1.3*x**3 + 0.4*x**2 - 1.4*x + 4,
+            x_range = [-1.823552, 1.6],
+            color = BLUE_C,
+            stroke_width = 4
+        )
+        FTC_label = Text("Fundamental Theorm of Calculus", font="Bahnschrift").set_color(BLUE)
+        y_label = MathTex("y = f(x)").set_color(BLUE_E)
+        y_label.shift(UP * 6 + LEFT * 3)
+        FTC_label.shift(UP * 8)
+        FTC_label.stroke_width = 1.4
+        dot_a = Dot(axes.c2p(-1, 0), color=RED)
+        dot_t = Dot(axes.c2p(1, 0), color=RED)
+        dot_th = Dot(axes.c2p(1.5, 0), color=RED)
+        label_a = MathTex("a").next_to(dot_a, DOWN)
+        label_t = MathTex("t").next_to(dot_t, DOWN)
+        label_th = MathTex("t+h").next_to(dot_th, DOWN)
+        self.play(Create(axes),
+                  Write(FTC_label),
+                  Write(y_label)
+        )
+        self.wait(1)
+        self.play(Create(graph))
+        self.wait(1)
+        self.play(
+            FadeIn(dot_a), FadeIn(dot_t), FadeIn(dot_th), Write(label_a), Write(label_t), Write(label_th)
+            )
+        self.wait(1)
+        area_1 = axes.get_area(
+         graph,
+         x_range=[-1, 1.5],
+         color=YELLOW,
+         opacity=1
+        )
+        self.play(FadeIn(area_1))
+        self.wait(1)
+        integral_1 = MathTex(r"\int_a^{t+h} f(x)\,dx")
+        integral_1.shift(LEFT * 3 + DOWN * 2)
+        self.play(Write(integral_1), run_time = 0.6)
+        self.wait(1)
+        area_2 = axes.get_area(
+         graph,
+         x_range=[-1, 1],
+         color=RED,
+         opacity=0.7
+        )
+        area_3 = axes.get_area(
+         graph,
+         x_range=[1, 1.5],
+         color=YELLOW,
+         opacity=0.7
+        )
+        self.play(FadeIn(area_2),
+                  Create(area_3))
+        self.wait(1)
+        integral_2 = MathTex(r"- \int_a^{t} f(x)\,dx")
+        integral_2.next_to(integral_1, RIGHT, buff = 0.3)
+        self.play(FadeOut(area_1), FadeOut(area_2))
+        self.play(Write(integral_2), run_time = 0.6)
+         
+        h_tracker = ValueTracker(0.5)
+        dot_th.add_updater(lambda m: m.move_to(axes.c2p(1 + h_tracker.get_value(), 0)))
+        label_th.add_updater(lambda m: m.next_to(dot_th, DOWN))
+        shrinking_area = always_redraw(lambda: 
+            axes.get_area(
+                graph,
+                x_range=[1, 1 + h_tracker.get_value()],
+                color=YELLOW,
+                opacity=0.7
+            )
+        )
+        self.add(shrinking_area)
+        self.play(FadeOut(area_3))
+        self.wait(0.5)
+        self.play(h_tracker.animate.set_value(0.01), run_time=3)
+
+        original_width = self.camera.frame.width
+        original_position = self.camera.frame.get_center()
+
+        frame = self.camera.frame
+        target_pos = axes.c2p(1, 1.01)
+        self.play(
+            frame.animate.set(width=3).move_to(target_pos),
+            run_time=2
+        )
+        self.wait()
+        top_point = axes.c2p(1, graph.underlying_function(1))
+        bottom_point = axes.c2p(1, 0)
+        brace = BraceBetweenPoints(bottom_point, top_point, direction=LEFT)
+        brace_label = MathTex("f(t)").next_to(brace, LEFT, buff=0.1)
+        self.play(GrowFromCenter(brace), Write(brace_label))
+        self.wait(1)
+        self.play(
+            self.camera.frame.animate.set(width=original_width).move_to(original_position),
+            run_time=2
+        )
+        approx = MathTex(r"\approx")
+        approx.next_to(integral_2, RIGHT, buff = 0.3)
+        answer = MathTex(r"h \cdot f(t)")
+        answer.next_to(approx, RIGHT, buff = 0.3)
+        self.play(Write(approx))
+        self.wait(0.3)
+        self.play(Write(answer))
+        full_equation = VGroup(integral_1, integral_2, approx, answer)
+        approx_expr = MathTex(r"\int_t^{t+h} f(x)\,dx \approx h \cdot f(t)")
+        approx_expr.shift(DOWN * 2)
+        self.play(ReplacementTransform(full_equation, approx_expr))
+        new_expr = MathTex(r"\frac{\int_t^{t+h} f(x)\,dx}{h} \approx f(t)").scale(1.2)
+        new_expr.move_to(approx_expr) 
+        self.wait(0.4)
+        self.play(Transform(approx_expr, new_expr))
+        limit = MathTex(r"\lim_{h \to 0}")
+        limit.next_to(new_expr, LEFT, buff = 0.2)
+        self.wait(0.6)
+        self.play(Create(limit))
+        newer_expr = MathTex(r"\frac{\int_t^{t+h} f(x)\,dx}{h} = f(t)").scale(1.2)
+        newer_expr.move_to(new_expr) 
+        self.play(Transform(new_expr, newer_expr))
+        box = SurroundingRectangle(newer_expr, color=WHITE, buff = 0.2, stroke_width = 1.7)
+        self.wait(0.8)
+        self.play(Create(box))
+        arrow = MathTex(r"\downarrow")
+        arrow.next_to(box, DOWN, buff = 1)
+        self.wait(0.2)
+        self.play(Create(arrow))
+        final_text = MathTex(r"\text{Derivative of} F(x) = \int_a^t f(x)dx")
+        final_text.next_to(arrow, DOWN, buff = 1)
+        final_text_2 = MathTex(r"A'(t) = f(t)")
+        final_text_2.next_to(final_text, DOWN, buff = 0.5)
+        final_text_3 = MathTex(r"A'(t) = f(t)").set_color(BLUE)
+        final_text_3.next_to(final_text, DOWN, buff = 0.5)
+        self.wait(0.3)
+        self.play(Write(final_text), run_time = 0.7)
+        self.wait(0.3)
+        self.play(Write(final_text_2))
+        self.wait(0.1)
+        self.play(Transform(final_text_2, final_text_3))
+        brace_2 = Brace(final_text_3, direction=DOWN, buff=0.2)
+        brace_2_label = brace_2.get_text("Fundamental Theorm of Calculus").scale(0.8)
+        self.wait(0.2)
+        self.play(FadeIn(brace_2),
+                  FadeIn(brace_2_label))
+        self.wait(2)
+
+
+

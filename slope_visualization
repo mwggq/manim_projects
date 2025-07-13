@@ -1,0 +1,82 @@
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+class Slope(Scene):
+    def construct(self):
+        title = Text('Visualizing Slope', font="Bahnschrift").set_color_by_gradient(BLUE, PURPLE)
+        title.stroke_width = 1.4
+        self.play(Write(title), run_time = 1)
+        self.play(title.animate.shift(UP * 8))
+
+        axes = Axes(
+            x_range=[-7, 7, 1],
+            y_range=[-7, 7, 1],
+            x_length=10,
+            y_length=6,
+            axis_config={"color": GREY},
+        )
+        labels = axes.get_axis_labels(x_label="x", y_label="y").set_color_by_gradient(BLUE, PURPLE)
+        labels.set_stroke(width=2)
+
+        m = ValueTracker(1)
+        b = ValueTracker(0)
+
+        def get_parabola():
+            return axes.plot(
+                lambda x: (m.get_value() * x + b.get_value()),
+                x_range=[-7, 7],
+                color=WHITE,
+                stroke_width=4
+            )
+        parabola = always_redraw(get_parabola)
+
+        equation = MathTex("y = mx + b", font_size=36).next_to(title, DOWN * 3).set_color_by_gradient(BLUE, PURPLE)
+        equation.set_stroke(width=2)
+        box = SurroundingRectangle(equation, corner_radius=0.2, color = BLUE)
+        self.wait(0.5)
+        self.add(equation, box)
+        b_label = always_redraw(
+            lambda: MathTex(f"m = {m.get_value():.2f}").next_to(axes, DOWN * 4).shift(LEFT * 3).set_color(BLUE)
+        )
+        b_label.stroke_width = 1.4
+        m_label = always_redraw(
+            lambda: MathTex(f"b = {b.get_value():.2f}").next_to(axes, DOWN * 4).shift(RIGHT * 3).set_color(PURPLE)
+        )
+        m_label.stroke_width = 1.4
+
+        self.add(
+            axes, labels, parabola,
+            equation, m_label, b_label,
+        )
+
+        self.wait(1)
+        self.play(
+            m.animate.set_value(2),
+            b.animate.set_value(0),
+            run_time=3
+        )
+        self.play(
+            m.animate.set_value(-3),
+            b.animate.set_value(-2),
+            run_time=3
+        )
+        self.play(
+            m.animate.set_value(2.5),
+            b.animate.set_value(2),
+            run_time=3
+        )
+        self.play(
+            m.animate.set_value(-0.5),
+            b.animate.set_value(4.5),
+            run_time=3
+        )
+        self.play(
+            m.animate.set_value(1),
+            b.animate.set_value(0),
+            run_time=3
+        )
+        self.wait(1)

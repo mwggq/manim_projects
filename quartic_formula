@@ -1,0 +1,113 @@
+from manim import *
+from manim import rate_functions
+
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+class Quartic(Scene):
+    def construct(self):
+        title = MathTex(r"ax^4 + bx^3 + cx^2 + dx + e = 0")
+        title.set_stroke(width=2)
+        self.play(Write(title))
+        self.wait(1)
+        self.play(title.animate.to_edge(UP))
+
+        formula = MathTex(
+            r"x = -\frac{b}{4a} + \frac{1}{2} \sqrt{"
+            r"\frac{b^2}{4a^2} - \frac{2c}{3a} + \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} + "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}} + \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} - "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}}"
+            r"}"
+            r"}"
+            r"- \frac{1}{2} \sqrt{"
+            r"\frac{b^2}{2a^2} - \frac{4c}{3a} - \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} + "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}} - \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} - "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}}"
+            r"- \frac{"
+            r"\sqrt{"
+            r"\frac{b^2}{4a^2} - \frac{2c}{3a} + \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} + "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}} + \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} - "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}}"
+            r"}"
+            r"}{"
+            r"\sqrt{"
+            r"\frac{b^2}{4a^2} - \frac{2c}{3a} + \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} + "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}} + \frac{1}{3a} \left("
+            r"\frac{"
+            r"-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a} - "
+            r"\sqrt{"
+            r"\left(-\frac{b^3}{8a^3} + \frac{b c}{2 a^2} - \frac{d}{a}\right)^2 "
+            r"- 4 \left(\frac{c^2}{36 a^2} - \frac{b d}{6 a^2} + \frac{e}{a}\right)^3"
+            r"}"
+            r"}{2}"
+            r"\right)^{\frac{1}{3}}"
+            r"}"
+            r"}"
+            r"}"
+            r"}"
+        )
+        formula.scale(0.8)
+        formula.set_stroke(width=2)
+        formula_width = formula.width
+        self.play(FadeOut(title))
+        formula.shift(RIGHT * 38)   
+        self.add(formula)
+        distance_to_shift = formula_width + config.frame_width
+
+        self.play(
+            formula.animate.shift(LEFT * distance_to_shift),
+            run_time=20,
+            rate_func=rate_functions.ease_in_quad,
+        )

@@ -1,0 +1,102 @@
+from manim import *
+from manim import rate_functions
+
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 120
+config.disable_caching = True
+
+class GabrielsIntegrals(Scene):
+    def construct(self):
+        title = Text("Toricelli's Trumpet", font="Bahnschrift").set_color_by_gradient(BLUE, PURPLE).scale(1.2).shift(UP)
+        volume = Text("Volume", font="Bahnschrift").set_color(BLUE).shift(DOWN * 3 + RIGHT * 4)
+        sa = Text("Surface Area", font="Bahnschrift").set_color(PURPLE).shift(DOWN * 3 + LEFT * 4)
+        titles = VGroup(title, volume, sa)
+        titles.stroke_width = 1.4
+
+        arrow_vol = Arrow(start=title.get_bottom(), end=volume.get_top(), buff=0.7, stroke_width=10)
+        arrow_sa = Arrow(start=title.get_bottom(), end=sa.get_top(), buff=0.7, stroke_width=10)
+        self.play(Write(title))
+        self.wait(0.3)
+        self.play(Write(volume), Write(sa))
+        self.play(GrowArrow(arrow_vol), GrowArrow(arrow_sa))
+        self.wait(1)
+
+        self.play(volume.animate.scale(1.2), run_time=0.4)
+        self.play(volume.animate.scale(0.8), run_time=0.4)
+        self.wait(0.7)
+        self.play(sa.animate.scale(1.2), run_time=0.4)
+        self.play(sa.animate.scale(0.8), run_time=0.4)
+        self.wait(0.8)
+        self.play(FadeOut(titles, arrow_vol, arrow_sa))
+
+        
+        vol1 = MathTex(r"= \pi \int_1^\infty \left(\frac{1}{x}\right)^2 dx").scale(1.2)
+        vol1.set_stroke(width=2)
+        self.play(Write(vol1))
+        self.wait(1)
+
+        vol2 = MathTex(r"= \pi \int_1^\infty \frac{1}{x^2} dx").scale(1.2)
+        vol2.set_stroke(width=2)
+        self.play(ReplacementTransform(vol1, vol2))
+        self.wait(1)
+
+        vol3 = MathTex(r"= \pi \left[ -\frac{1}{x} \right]_1^\infty").scale(1.2)
+        vol3.set_stroke(width=2)
+        self.play(ReplacementTransform(vol2, vol3))
+        self.wait(1)
+
+        vol4 = MathTex(r"= \pi (0 - (-1)) = \pi").scale(1.2)
+        vol4.set_stroke(width=2)
+        self.play(ReplacementTransform(vol3, vol4))
+        self.wait(1.5)
+
+        vol5 = MathTex(r"\text{Volume} = \pi \int_1^\infty \left(\frac{1}{x}\right)^2 dx = \pi").scale(1.2)
+        vol5.set_stroke(width=2)
+        self.play(TransformMatchingShapes(vol4, vol5))
+        self.wait(1.5)
+
+        box_vol = SurroundingRectangle(vol5, color=GREEN, buff=0.4)
+        self.play(Create(box_vol))
+        self.wait(1.5)
+
+        self.play(FadeOut(VGroup(vol5, box_vol)))
+
+        sa1 = MathTex(
+            r"= 2\pi \int_1^\infty \frac{1}{x} \sqrt{1 + \left(\frac{d}{dx}\left(\frac{1}{x}\right)\right)^2} dx"
+        ).scale(1.2)
+        sa1.set_stroke(width=2)
+        self.play(Write(sa1))
+        self.wait(2)
+
+        sa2 = MathTex(
+            r"= 2\pi \int_1^\infty \frac{1}{x} \sqrt{1 + \left(-\frac{1}{x^2}\right)^2} dx"
+        ).scale(1.2)
+        sa2.set_stroke(width=2)
+        self.play(ReplacementTransform(sa1, sa2))
+        self.wait(1.5)
+
+        sa3 = MathTex(
+            r"= 2\pi \int_1^\infty \frac{1}{x} \sqrt{1 + \frac{1}{x^4}} dx"
+        ).scale(1.2)
+        sa3.set_stroke(width=2)
+        self.play(ReplacementTransform(sa2, sa3))
+        self.wait(1.5)
+
+        sa4 = MathTex(
+            r"= 2\pi \int_1^\infty \frac{1}{x} dx = 2\pi [\ln x]_1^\infty = \infty"
+        ).scale(1.2)
+        sa4.set_stroke(width=2)
+        self.play(ReplacementTransform(sa3, sa4))
+        self.wait(2)
+
+        sa5 = MathTex(r"\text{Surface Area} = 2\pi \int_1^\infty \frac{1}{x} \sqrt{1 + \left(\frac{d}{dx}\left(\frac{1}{x}\right)\right)^2} dx = \infty")
+        sa5.set_stroke(width=2)
+        self.play(TransformMatchingShapes(sa4, sa5))
+        self.wait(1.5)
+
+        box_sa = SurroundingRectangle(sa5, color=PURPLE, buff=0.5)
+        self.play(Create(box_sa))
+        self.wait(2)
+

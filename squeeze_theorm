@@ -1,0 +1,72 @@
+from manim import *
+import math 
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+class Squeeze(Scene):
+    def construct(self):
+        axes = Axes(
+            x_range=[-0.6, 0.6, 0.2],
+            y_range=[-0.6, 0.6, 0.2],
+            x_length=8,
+            y_length=6,
+            tips=False,
+        )
+        axes.add_coordinates()
+
+        g_graph = axes.plot(lambda t: -abs(t), x_range=[-0.55, 0.55], color=BLUE)
+        h_graph = axes.plot(lambda t:  abs(t), x_range=[-0.55, 0.55], color=BLUE)
+
+        f_graph_left = axes.plot(
+            lambda t: t*math.sin(1/t), x_range=[-0.55, -0.002], color=PURPLE
+        )
+        f_graph_right = axes.plot(
+            lambda t: t*math.sin(1/t), x_range=[0.002, 0.55], color=PURPLE
+        )
+
+        fill_between = axes.get_area(
+            g_graph,
+            x_range=[-0.55, 0.55],
+            bounded_graph=h_graph,
+            opacity=0.1,
+            color=WHITE
+        )
+
+        self.add(axes, fill_between, g_graph, h_graph,
+                 f_graph_left, f_graph_right)
+
+        dot = Dot(axes.coords_to_point(0, 0), color=WHITE).scale(0.6)
+        title = Text("Squeeze Theorem", font="Bahnschrift").set_color_by_gradient(BLUE, PURPLE).scale(1.2)
+        title.next_to(axes, UP, buff=1.5)
+        title.stroke_width = 1.4
+        self.add(title)
+        
+        text1 = MathTex(
+            r"\text{If } h(x) \leq f(x) \leq g(x) \text{ for all } x \text{ in an open interval}"
+        ).scale(0.8)
+        
+        text1_cont = MathTex(
+            r"\text{containing } c\text{, except possibly at } c \text{ itself, and if}"
+        ).scale(0.8)
+        
+        text2 = MathTex(
+            r"\lim_{x \to c} h(x) = L = \lim_{x \to c} g(x)"
+        ).scale(0.9)
+        
+        text3 = MathTex(
+            r"\text{then } \lim_{x \to c} f(x) \text{ exists and is equal to } L"
+        ).scale(0.8)
+        
+        for text in [text1, text1_cont, text2, text3]:
+            text.set_color(WHITE)
+            text.set_stroke(width=1.5)
+        
+        text1.next_to(axes, DOWN, buff=0.8)
+        text1_cont.next_to(text1, DOWN, buff=0.3)
+        text2.next_to(text1_cont, DOWN, buff=0.5)
+        text3.next_to(text2, DOWN, buff=0.3)
+
+        self.add(dot, text1, text1_cont, text2, text3)

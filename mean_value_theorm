@@ -1,0 +1,106 @@
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+class MVT(Scene):
+    def construct(self):
+  
+        title = Text("Mean Value Theorem", font="Bahnschrift").scale(0.9)
+        title.set_color_by_gradient(BLUE, PURPLE)
+        title.stroke_width = 1.2
+        self.play(GrowFromCenter(title))
+        self.play(title.animate.move_to(UP * 5))
+
+        axes = Axes(
+            x_range=[0, 6],
+            y_range=[0, 6],
+            axis_config={"color": GRAY},
+            x_length=6,
+            y_length=3.5
+        ).shift(DOWN)
+        labels = axes.get_axis_labels(x_label="x", y_label="f(x)")
+        self.play(Create(axes), Write(labels))
+        def func(x):
+            return 0.2 * (x - 1) * (x - 5) + 2
+
+        graph = axes.plot(func, color=BLUE, stroke_width=5)
+        self.play(Create(graph))
+        self.wait(1)
+
+        a, b = 1, 5
+        point_a = axes.c2p(a, func(a))
+        point_b = axes.c2p(b, func(b))
+
+        dot_a = Dot(point_a, color=WHITE)
+        dot_b = Dot(point_b, color=WHITE)
+        label_a = MathTex("a").next_to(dot_a, DOWN)
+        label_b = MathTex("b").next_to(dot_b, DOWN)
+        self.play(FadeIn(dot_a, dot_b), Write(label_a), Write(label_b))
+
+        secant = Line(point_a, point_b, color=GREEN, stroke_width=5)
+        slope_secant = (func(b) - func(a)) / (b - a)
+        self.play(Create(secant))
+        self.wait(1)
+
+        slope_eq = MathTex(
+            r"\text{Average rate of change: }",
+            r"\frac{f(b) - f(a)}{b - a}"
+        ).scale(0.9)
+        slope_eq.set_stroke(width=1.2)
+        slope_eq.next_to(axes, DOWN, buff=1.2).shift(DOWN * 0.5)
+        self.play(GrowFromCenter(slope_eq))
+        self.wait(1)
+
+        c_tracker = ValueTracker(a)
+
+        def deriv(x):
+        
+            return 0.2 * ((x - 1) + (x - 5))  
+
+        dot_c = always_redraw(lambda: Dot(axes.c2p(c_tracker.get_value(), func(c_tracker.get_value())), color=WHITE))
+
+        tangent = always_redraw(
+            lambda: Line(
+                start=axes.c2p(
+                    c_tracker.get_value() - 1,
+                    func(c_tracker.get_value()) - deriv(c_tracker.get_value())
+                ),
+                end=axes.c2p(
+                    c_tracker.get_value() + 1,
+                    func(c_tracker.get_value()) + deriv(c_tracker.get_value())
+                ),
+                color=GREEN,
+                stroke_width=5
+            )
+        )
+
+        label_c = always_redraw(lambda: MathTex("c").next_to(dot_c, DOWN))
+
+        self.play(FadeIn(dot_c), Write(label_c))
+        self.add(tangent)
+        self.wait(0.5)
+
+        self.play(c_tracker.animate.set_value(3), run_time=4, rate_func=smooth)
+        self.wait(1)
+        highlight = Line(point_a, point_b, color=GREEN).set_stroke(width=6, opacity=1)
+        self.play(Indicate(tangent, color=GREEN), Indicate(highlight, color=GREEN))
+        
+        eq = MathTex(r"f'(c) = \frac{f(b) - f(a)}{b - a}").scale(1)
+        eq.set_stroke(width=1.2)
+        eq.next_to(slope_eq, DOWN * 2, buff=0.4)
+        self.play(GrowFromCenter(eq))
+        self.wait(1)
+
+        self.play(
+            *map(FadeOut, [
+                slope_eq, secant, tangent, dot_c, label_c,
+                axes, labels, dot_a, dot_b, label_a, label_b, secant, graph, title, highlight
+            ])
+        )
+        self.play(eq.animate.move_to(UP))
+        box = SurroundingRectangle(eq, buff=0.5, color=BLUE)
+        self.play(Create(box))
+        self.wait(2)

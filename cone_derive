@@ -1,0 +1,153 @@
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+
+class ConeDerivation(Scene):
+    def construct(self):
+        title = Text("Deriving the Volume of a Cone", font="Bahnschrift").scale(0.9)
+        title.set_color_by_gradient(BLUE, PURPLE)
+        self.play(FadeIn(title, shift=UP))
+        self.wait(1)
+        self.play(title.animate.shift(UP * 4))
+
+        left_base = LEFT * 2 + DOWN * 2
+        right_base = RIGHT * 2 + DOWN * 2
+        tip = UP * 2
+
+        base_arc = ArcBetweenPoints(
+            left_base,
+            right_base,
+            angle=-0.4,   
+            color=WHITE
+        )
+        base_arc_2 = ArcBetweenPoints(
+            left_base,
+            right_base,
+            angle=0.4,   
+            color=WHITE
+        )
+
+        left_edge = Line(left_base, tip)
+        right_edge = Line(right_base, tip)
+
+        height_line = DashedLine(tip, DOWN * 2)
+
+        H_label = MathTex("H").set_stroke(width=1.2).next_to(height_line, RIGHT)
+        R_label = MathTex("R").set_stroke(width=1.2).next_to(base_arc, DOWN)
+
+        cone_group = VGroup(
+            base_arc, left_edge, right_edge,
+            height_line, H_label, R_label, base_arc_2
+        )
+        cone_group.scale(0.8).shift(LEFT * 3)
+
+        self.play(
+            Create(left_edge),
+            Create(right_edge),
+            Create(base_arc),
+            Create(base_arc_2),
+            Create(height_line),
+        )
+        self.play(Write(H_label), Write(R_label))
+        self.wait(1)
+
+        t_tracker = ValueTracker(0)
+
+        slice_line = always_redraw(lambda: Line(
+            interpolate(
+                left_edge.get_start(),
+                left_edge.get_end(),
+                t_tracker.get_value()
+            ),
+            interpolate(
+                right_edge.get_start(),
+                right_edge.get_end(),
+                t_tracker.get_value()
+            ),
+            color=BLUE
+        ))
+
+        self.add(slice_line)
+
+        setup = MathTex(
+            r"V = \int \mathrm{(area\ of\ slice)} \, dh"
+        ).set_stroke(width=1.2).scale(0.9)
+        setup.shift(RIGHT * 3)
+        self.play(GrowFromCenter(setup))
+        self.play(t_tracker.animate.set_value(1), run_time=3)
+        self.wait(1)
+
+        slice_eq = MathTex(
+            r"V = \int \pi r^2 \, dh"
+        ).set_stroke(width=1.2).scale(0.9)
+        slice_eq.move_to(setup)
+        self.play(ReplacementTransform(setup, slice_eq))
+        self.wait(1)
+
+        similar = MathTex(
+            r"\frac{r}{R} = \frac{h}{H}"
+        ).set_stroke(width=1.2).scale(0.9)
+        similar.next_to(slice_eq, DOWN, buff=0.6)
+        self.play(Write(similar))
+        self.wait(1)
+
+        r_expr = MathTex(
+            r"r = \frac{R}{H}h"
+        ).set_stroke(width=1.2).scale(0.9)
+        r_expr.move_to(similar)
+        self.play(ReplacementTransform(similar, r_expr))
+        self.wait(1)
+
+        substituted = MathTex(
+            r"V = \int \pi \left(\frac{R}{H}h\right)^2 \, dh"
+        ).set_stroke(width=1.2).scale(0.9)
+        substituted.move_to(slice_eq)
+        self.play(ReplacementTransform(slice_eq, substituted),
+                  FadeOut(r_expr))
+        self.wait(1)
+
+        simplified = MathTex(
+            r"V = \pi \frac{R^2}{H^2} \int h^2 \, dh"
+        ).set_stroke(width=1.2).scale(0.9)
+        simplified.move_to(substituted)
+        self.play(ReplacementTransform(substituted, simplified))
+        self.wait(1)
+
+        with_limits = MathTex(
+            r"V = \pi \frac{R^2}{H^2} \int_0^H h^2 \, dh"
+        ).set_stroke(width=1.2).scale(0.9)
+        with_limits.move_to(simplified)
+        self.play(ReplacementTransform(simplified, with_limits))
+        self.wait(1)
+
+        integrated = MathTex(
+            r"V = \pi \frac{R^2}{H^2} \left[\frac{h^3}{3}\right]_0^H"
+        ).set_stroke(width=1.2).scale(0.9)
+        integrated.move_to(with_limits)
+        self.play(ReplacementTransform(with_limits, integrated))
+        self.wait(1)
+
+        evaluated = MathTex(
+            r"V = \pi \frac{R^2}{H^2} \cdot \frac{H^3}{3}"
+        ).set_stroke(width=1.2).scale(0.9)
+        evaluated.move_to(integrated)
+        self.play(ReplacementTransform(integrated, evaluated))
+        self.wait(1)
+
+        final = MathTex(
+            r"V = \frac{1}{3}\pi R^2 H"
+        ).set_stroke(width=1.2).scale(1.1)
+        final.move_to(evaluated)
+        self.play(ReplacementTransform(evaluated, final))
+        self.wait(2)
+
+        self.play(FadeOut(cone_group, title),
+                  final.animate.move_to(ORIGIN))
+
+        box = SurroundingRectangle(final, buff=0.3, color=BLUE)
+        self.play(Create(box))
+        self.wait(2)

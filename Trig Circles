@@ -1,0 +1,171 @@
+from manim import *
+import numpy as np
+
+config.pixel_width  = 1080
+config.pixel_height = 1920
+config.frame_rate   = 60
+config.disable_caching = True
+
+class TrigCircles(Scene):
+    def construct(self):
+        axes_sin = Axes(x_range=[0, 2*PI, PI/2], y_range=[-1, 1, 1], x_length=3.5, y_length=2, axis_config={"include_tip": False})
+        axes_cos = Axes(x_range=[0, 2*PI, PI/2], y_range=[-1, 1, 1], x_length=3.5, y_length=2, axis_config={"include_tip": False})
+        axes_tan = Axes(x_range=[0, 2*PI, PI/2], y_range=[-3, 3, 1], x_length=3.5, y_length=2, axis_config={"include_tip": False})
+        
+        def add_pi_labels(axes):
+            pi_labels = [
+                (0, "0"),
+                (PI/2, "π/2"),
+                (PI, "π"),
+                (3*PI/2, "3π/2"),
+                (2*PI, "2π")
+            ]
+            label_group = VGroup()
+            for val, label_text in pi_labels:
+                # Position labels below the x-axis
+                label_pos = axes.c2p(val, -0.5)
+                label = Text(label_text, font_size=18)
+                label.move_to(label_pos)
+                label_group.add(label)
+            return label_group
+
+        axes_sin.to_edge(RIGHT, buff=1).shift(UP*7)
+        axes_cos.next_to(axes_sin, DOWN, buff=4)
+        axes_tan.next_to(axes_cos, DOWN, buff=4)
+
+        axes_cos.scale(1.3)
+        axes_tan.scale(1.3)
+        axes_sin.scale(1.3)
+        
+        x_labels_sin = add_pi_labels(axes_sin).set_stroke(width=1.2)
+        x_labels_cos = add_pi_labels(axes_cos).set_stroke(width=1.2)
+        x_labels_tan = add_pi_labels(axes_tan).set_stroke(width=1.2)
+
+        circle_sin = Circle(radius=1, color=BLUE).next_to(axes_sin, LEFT, buff=3)
+        circle_cos = Circle(radius=1, color=GREEN).next_to(axes_cos, LEFT, buff=3)
+        circle_tan = Circle(radius=1, color=PURPLE).next_to(axes_tan, LEFT, buff=3)
+        
+        def add_angle_labels(circle):
+            angles = [
+                (0, "0"),
+                (PI/2, "π/2"),
+                (PI, "π"),
+                (3*PI/2, "3π/2"),
+                (2*PI, "2π")
+            ]
+            angle_labels = VGroup()
+            for angle, label_text in angles:
+                # Position labels outside the circle
+                label_pos = circle.get_center() + 1.5 * np.array([np.cos(angle), np.sin(angle), 0])
+                angle_label = Text(label_text, font_size=20)
+                angle_label.move_to(label_pos)
+                angle_labels.add(angle_label)
+            return angle_labels
+        
+        labels_sin_angles = add_angle_labels(circle_sin).set_stroke(width=1.2)
+        labels_cos_angles = add_angle_labels(circle_cos).set_stroke(width=1.2)
+        labels_tan_angles = add_angle_labels(circle_tan).set_stroke(width=1.2)
+
+        label_sin = Text("sin", font="Bahnschrift").scale(0.9).next_to(circle_sin, UP * 4).set_stroke(width=1.2)
+        label_cos = Text("cos", font="Bahnschrift").scale(0.9).next_to(circle_cos, UP * 4).set_stroke(width=1.2)
+        label_tan = Text("tan", font="Bahnschrift").scale(0.9).next_to(circle_tan, UP * 4).set_stroke(width=1.2)
+
+        theta = ValueTracker(0)
+
+        def get_point(circle):
+            return circle.get_center() + np.array([
+                np.cos(theta.get_value()),
+                np.sin(theta.get_value()),
+                0
+            ])
+
+        dot_sin = always_redraw(lambda: Dot(get_point(circle_sin)))
+        dot_cos = always_redraw(lambda: Dot(get_point(circle_cos)))
+        dot_tan = always_redraw(lambda: Dot(get_point(circle_tan)))
+
+        radius_sin = always_redraw(lambda: Line(circle_sin.get_center(), get_point(circle_sin)))
+        radius_cos = always_redraw(lambda: Line(circle_cos.get_center(), get_point(circle_cos)))
+        radius_tan = always_redraw(lambda: Line(circle_tan.get_center(), get_point(circle_tan)))
+
+        # Sin & Cos graphs
+        sin_graph = always_redraw(lambda: axes_sin.plot(
+            lambda x: np.sin(x),
+            x_range=[0, theta.get_value()],
+            color=BLUE
+        ))
+        cos_graph = always_redraw(lambda: axes_cos.plot(
+            lambda x: np.cos(x),
+            x_range=[0, theta.get_value()],
+            color=GREEN
+        ))
+
+        def tan_graph_func():
+            t = theta.get_value()
+            segments = []
+            eps = 0.1
+            
+            def bounded_tan(x):
+                return np.clip(np.tan(x), -4, 4)
+            
+            if t > 0:
+                end1 = min(t, PI/2 - eps)
+                if end1 > 0:
+                    segments.append(axes_tan.plot(
+                        bounded_tan,
+                        x_range=[0, end1],
+                        color=PURPLE
+                    ))
+            
+            if t > PI/2 + eps:
+                start2 = PI/2 + eps
+                end2 = min(t, 3*PI/2 - eps)
+                if end2 > start2:
+                    segments.append(axes_tan.plot(
+                        bounded_tan,
+                        x_range=[start2, end2],
+                        color=PURPLE
+                    ))
+            
+            if t > 3*PI/2 + eps:
+                start3 = 3*PI/2 + eps
+                if t > start3:
+                    segments.append(axes_tan.plot(
+                        bounded_tan,
+                        x_range=[start3, t],
+                        color=PURPLE
+                    ))
+            
+            return VGroup(*segments) if segments else VGroup()
+
+        tan_graph = always_redraw(tan_graph_func)
+
+        def connector(circle, axes, func, clamp=None):
+            def safe_func(x):
+                try:
+                    y = func(x)
+                    if clamp is not None:
+                        y = np.clip(y, -clamp, clamp)
+                    return y
+                except:
+                    return 0
+            return always_redraw(lambda: DashedLine(
+                get_point(circle),
+                axes.c2p(theta.get_value(), safe_func(theta.get_value()))
+            ))
+
+        line_sin = connector(circle_sin, axes_sin, np.sin)
+        line_cos = connector(circle_cos, axes_cos, np.cos)
+        line_tan = connector(circle_tan, axes_tan, np.tan, clamp=3)
+
+        self.add(circle_sin, circle_cos, circle_tan,
+                 axes_sin, axes_cos, axes_tan,
+                 x_labels_sin, x_labels_cos, x_labels_tan,
+                 label_sin, label_cos, label_tan,
+                 labels_sin_angles, labels_cos_angles, labels_tan_angles,
+                 dot_sin, dot_cos, dot_tan,
+                 radius_sin, radius_cos, radius_tan,
+                 sin_graph, cos_graph, tan_graph,
+                 line_sin, line_cos, line_tan)
+
+        self.play(theta.animate.set_value(2*PI), run_time=10, rate_func=linear)
+        self.wait()

@@ -1,0 +1,113 @@
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+
+class FunctionAnimation(Scene):
+    def construct(self):
+
+        def bold_math(expr):
+            m = MathTex(expr, color=WHITE)
+            m.set_stroke(width=1.5)
+            return m
+
+        output = bold_math("f(x)").set_color(BLUE)
+        equals = bold_math("=").next_to(output, RIGHT, buff=0.4)
+        input = bold_math("x").set_color(BLUE).next_to(equals, RIGHT, buff=0.4)
+
+        intro = VGroup(output, equals, input)
+        intro.move_to(ORIGIN)
+
+        self.play(GrowFromCenter(intro))
+        self.play(intro.animate.scale(1.2), run_time=0.5)
+        self.play(intro.animate.scale(0.8), run_time=0.5)
+        self.wait(1)
+
+        rhs_list = [
+            "x",
+            "x+1",
+            "2x",
+            "x^2",
+            "x^3",
+            r"\sqrt{x}",
+            r"\sqrt[3]{x}",
+            r"\frac{1}{x}",
+            r"\left|x\right|",
+            r"\sin(x)",
+            r"\cos(x)",
+            r"\tan(x)",
+            r"\arcsin(x)",
+            r"\ln(x)",
+            r"\log_2(x)",
+            r"e^x",
+            r"2^x",
+            r"\frac{1}{1+e^{-x}}",
+            r"\frac{\sin(x)}{x}",
+            r"x\sin(x)",
+            r"x\cos(x)",
+            r"x e^{-x}",
+            r"e^{-x^2}",
+            r"\Gamma(x)",
+            r"\zeta(x)",
+            r"J_0(x)",
+            r"\operatorname{erf}(x)",
+            r"\lfloor x\rfloor",
+            r"\lceil x\rceil",
+            r"\operatorname{sgn}(x)",
+        ]
+
+        def make_equation(rhs):
+            eq = MathTex("f(x)", "=", rhs)
+
+            eq.set_fill(WHITE, opacity=1)
+            eq.set_stroke(WHITE, width=1.5)
+            eq.set_color_by_tex("f", BLUE)
+            eq.set_color_by_tex("x", BLUE)
+
+            return eq
+
+        current = make_equation(rhs_list[0])
+
+        self.play(
+            Transform(output, current[0]),
+            Transform(equals, current[1]),
+            Transform(input, current[2]),
+        )
+
+        current = VGroup(output, equals, input)
+        current.move_to(ORIGIN)
+
+        self.wait(0.5)
+
+        for rhs in rhs_list[1:]:
+            next_eq = make_equation(rhs)
+
+            self.play(
+                TransformMatchingShapes(current, next_eq),
+                run_time=0.5
+            )
+
+            current = next_eq
+            self.wait(0.0166667)
+
+        final = MathTex("f(x)").set_color(BLUE).set_fill(BLUE, opacity=1).set_stroke(BLUE, width=1.5)
+        final1 = MathTex("=").set_color(WHITE).set_fill(WHITE, opacity=1).set_stroke(WHITE, width=1.5)
+        final2 = MathTex(r"x").set_color(BLUE).set_fill(BLUE, opacity=1).set_stroke(BLUE, width=1.5)
+        final1.next_to(final, RIGHT, buff=0.4)
+        final2.next_to(final1, RIGHT, buff=0.4)
+        finals = VGroup(final, final1, final2)
+        finals.move_to(ORIGIN)
+
+        self.play(TransformMatchingTex(current, finals))
+
+        self.play(finals.animate.scale(1.2), run_time=0.5)
+        self.play(finals.animate.scale(0.8), run_time=0.5)
+
+        box = SurroundingRectangle(finals, color=WHITE, buff=0.5, corner_radius=0.1)
+
+        self.play(Create(box))
+
+        self.wait(2)

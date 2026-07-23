@@ -1,0 +1,68 @@
+from manim import *
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+
+class CoordinateTransformations(Scene):
+    def construct(self):
+        def styled_mathtex(*parts, **kwargs):
+            return MathTex(*parts, **kwargs).set_stroke(width=1.2).scale(0.7)
+
+        def make_transform_block(title_text, equations):
+            title = Text(title_text, font="Bahnschrift", weight=BOLD).scale(0.8)
+            title.set_color_by_gradient(BLUE, PURPLE)
+            eq_group = VGroup(*equations)
+            eq_group.arrange(DOWN, aligned_edge=LEFT, buff=0.12)
+            block = VGroup(title, eq_group)
+            block.arrange(DOWN, aligned_edge=ORIGIN, buff=0.18)
+            return block
+
+        blocks = VGroup(
+            make_transform_block("Rectangular to Polar", [
+                styled_mathtex(r"x = r\cos(\theta),\quad y = r\sin(\theta)"),
+                styled_mathtex(r"r = \sqrt{x^2 + y^2},\quad \theta = \tan^{-1}\left(\frac{y}{x}\right)"),
+            ]),
+            make_transform_block("Rectangular to Spherical", [
+                styled_mathtex(r"x = \rho\sin(\phi)\cos(\theta)"),
+                styled_mathtex(r"y = \rho\sin(\phi)\sin(\theta)"),
+                styled_mathtex(r"z = \rho\cos(\phi)"),
+                styled_mathtex(r"\rho = \sqrt{x^2 + y^2 + z^2}"),
+            ]),
+            make_transform_block("Polar to Rectangular", [
+                styled_mathtex(r"x = r\cos(\theta)"),
+                styled_mathtex(r"y = r\sin(\theta)"),
+            ]),
+            make_transform_block("Polar to Spherical", [
+                styled_mathtex(r"\rho = \sqrt{r^2 + z^2}"),
+                styled_mathtex(r"\phi = \tan^{-1}\left(\frac{r}{z}\right)"),
+                styled_mathtex(r"\theta = \theta"),
+            ]),
+            make_transform_block("Spherical to Rectangular", [
+                styled_mathtex(r"x = \rho\sin(\phi)\cos(\theta)"),
+                styled_mathtex(r"y = \rho\sin(\phi)\sin(\theta)"),
+                styled_mathtex(r"z = \rho\cos(\phi)"),
+            ]),
+            make_transform_block("Spherical to Polar", [
+                styled_mathtex(r"r = \rho\sin(\phi)"),
+                styled_mathtex(r"\theta = \theta"),
+                styled_mathtex(r"z = \rho\cos(\phi)"),
+            ]),
+        )
+
+        main_title = Text("Coordinate Transformations", font="Bahnschrift", weight=BOLD).scale(1.1)
+        main_title.set_color_by_gradient(BLUE, PURPLE)
+        main_title.move_to(UP * 8.5)
+
+        columns = VGroup(
+            VGroup(blocks[0], blocks[1], blocks[2]).arrange(DOWN, buff=3),
+            VGroup(blocks[3], blocks[4], blocks[5]).arrange(DOWN, buff=3),
+        )
+
+        columns.arrange(RIGHT, aligned_edge=UP, buff=1)
+
+        columns.move_to(ORIGIN)
+
+        self.add(main_title, columns)

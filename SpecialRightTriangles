@@ -1,0 +1,222 @@
+from manim import *
+import numpy as np
+
+config.pixel_width = 1080
+config.pixel_height = 1920
+config.frame_rate = 60
+config.disable_caching = True
+
+def title_text(s, scale=0.7):
+    return Text(s, font="Bahnschrift", weight=BOLD).scale(scale)
+
+
+def caption_text(s, scale=0.42):
+    return Text(s, font="Bahnschrift", weight=BOLD).scale(scale)
+
+
+def math(*parts, scale=0.7):
+    return MathTex(*parts).set_stroke(width=1.2).scale(scale)
+
+
+def unit(v):
+    v = np.array(v, dtype=float)
+    n = np.linalg.norm(v)
+    return v / n if n != 0 else v
+
+
+def angle_label(vertex, p1, p2, tex, dist=0.5, scale=0.55):
+    """Small MathTex label sitting inside the angle formed at `vertex`
+    by the rays toward p1 and p2."""
+    direction = unit(unit(p1 - vertex) + unit(p2 - vertex))
+    return math(tex, scale=scale).move_to(vertex + direction * dist)
+
+
+def side_label(p1, p2, tex, outward, dist=0.4, scale=0.6):
+    """MathTex label at the midpoint of segment p1-p2, offset along
+    `outward` (a direction vector pointing away from the shape)."""
+    mid = (p1 + p2) / 2
+    return math(tex, scale=scale).move_to(mid + unit(outward) * dist)
+
+
+def right_angle_marker(vertex, dir1, dir2, size=0.22, color=WHITE):
+    """Small square 'corner' mark indicating a right angle at `vertex`,
+    with the two legs pointing along dir1 and dir2."""
+    d1, d2 = unit(dir1), unit(dir2)
+    p1 = vertex + d1 * size
+    p2 = p1 + d2 * size
+    p3 = vertex + d2 * size
+    mark = VMobject(color=color, stroke_width=2.5)
+    mark.set_points_as_corners([p1, p2, p3])
+    return mark
+
+
+class SpecialRightTriangles(Scene):
+    def construct(self):
+        divider = DashedLine(LEFT * 7, RIGHT * 7, color=GRAY, stroke_width=1.5)
+        divider.set_opacity(0.4)
+        top_title = title_text("45\u00b0\u201345\u00b0\u201390\u00b0 Triangle").move_to(UP * 3)
+        bot_title = title_text("30\u00b0\u201360\u00b0\u201390\u00b0 Triangle").move_to(DOWN * 3)
+
+        self.play(GrowFromCenter(top_title), GrowFromCenter(bot_title), FadeIn(divider))
+        self.wait(0.3)
+        self.play(
+            top_title.animate.move_to(UP * 6),
+            bot_title.animate.move_to(DOWN * 6),
+            run_time=0.8,
+            rate_func=smooth,
+        )
+        self.wait(0.2)
+        s = 1.15  
+        TRI_TOP = LEFT * 3.4 + UP * 1.8
+        A = TRI_TOP + LEFT * s + DOWN * s   
+        B = TRI_TOP + RIGHT * s + DOWN * s  
+        C = TRI_TOP + RIGHT * s + UP * s    
+        D = TRI_TOP + LEFT * s + UP * s    
+
+        square = Polygon(A, B, C, D, color=BLUE_C, stroke_width=3)
+        sq_labels = VGroup(
+            side_label(A, B, "a", DOWN),
+            side_label(B, C, "a", RIGHT),
+            side_label(C, D, "a", UP),
+            side_label(D, A, "a", LEFT),
+        )
+        diagonal = Line(A, C, color=YELLOW, stroke_width=3)
+        tri_ABC = Polygon(A, B, C, color=BLUE_C, fill_color=BLUE_C,
+                           fill_opacity=0.35, stroke_width=0)
+        far_edges = VGroup(Line(C, D, color=BLUE_C), Line(D, A, color=BLUE_C))
+        right_mark_top = right_angle_marker(B, unit(A - B), unit(C - B))
+        ang_45_A = angle_label(A, B, C, "45^\\circ")
+        ang_45_C = angle_label(C, A, B, "45^\\circ")
+        c_label = side_label(A, C, "c", unit(np.array([-1, 1, 0])), dist=0.4)
+        c_final_label = side_label(A, C, "a\\sqrt{2}", unit(np.array([-1, 1, 0])), dist=0.5)
+        EQ_TOP = RIGHT * 3.4 + UP * 1.9
+        top_caption = caption_text("Solve for c:").move_to(EQ_TOP + UP * 0.85)
+        eq_top_1 = math("\\sin(45^\\circ) = \\dfrac{a}{c}").move_to(EQ_TOP)
+        eq_top_2 = math("c = \\dfrac{a}{\\sin(45^\\circ)}").move_to(EQ_TOP)
+        eq_top_3 = math("c = a\\sqrt{2}").move_to(EQ_TOP)
+        box_top = SurroundingRectangle(eq_top_3, color=BLUE_C, buff=0.2)
+        top_group = VGroup(
+            square, sq_labels, diagonal, tri_ABC, far_edges, right_mark_top,
+            ang_45_A, ang_45_C, c_label, c_final_label,
+            top_caption, eq_top_1, eq_top_2, eq_top_3, box_top,
+        )
+        old_top_center = top_group.get_center()
+        target_top = UP * 1.8
+        top_group.move_to(target_top)
+        delta_top = target_top - old_top_center
+        A, B, C, D = A + delta_top, B + delta_top, C + delta_top, D + delta_top
+        side = 2.3
+        half = side / 2
+        h_full = side * np.sqrt(3) / 2
+
+        TRI_BOT = LEFT * 3.4 + DOWN * 2.0
+        P = TRI_BOT + LEFT * half + DOWN * (h_full * 0.4)
+        Q = TRI_BOT + RIGHT * half + DOWN * (h_full * 0.4)
+        R = TRI_BOT + UP * (h_full * 0.6)
+        M = (P + Q) / 2
+
+        eq_tri = Polygon(P, Q, R, color=ORANGE, stroke_width=3)
+        eq_labels = VGroup(
+            side_label(P, Q, "a", DOWN),
+            side_label(Q, R, "a", unit(np.array([1, 0.6, 0]))),
+            side_label(R, P, "a", unit(np.array([-1, 0.6, 0]))),
+        )
+
+        altitude = Line(R, M, color=YELLOW, stroke_width=3)
+        tri_PMR = Polygon(P, M, R, color=ORANGE, fill_color=ORANGE,
+                           fill_opacity=0.35, stroke_width=0)
+        far_edge_bot = Line(Q, R, color=ORANGE)
+
+        right_mark_bot = right_angle_marker(M, unit(P - M), unit(R - M))
+        ang_60_P = angle_label(P, M, R, "60^\\circ")
+        ang_30_R = angle_label(R, P, M, "30^\\circ")
+
+        base_half_label = side_label(P, M, "\\dfrac{a}{2}", DOWN, dist=0.38, scale=0.55)
+        h_label = side_label(R, M, "h", RIGHT, dist=0.38)
+        h_final_label = side_label(R, M, "\\dfrac{a\\sqrt{3}}{2}", RIGHT, dist=0.6, scale=0.55)
+
+        EQ_BOT = RIGHT * 3.4 + DOWN * 1.9
+        bot_caption = caption_text("Solve for h:").move_to(EQ_BOT + UP * 0.85)
+        eq_bot_1 = math("\\sin(60^\\circ) = \\dfrac{h}{a}").move_to(EQ_BOT)
+        eq_bot_2 = math("h = a\\sin(60^\\circ)").move_to(EQ_BOT)
+        eq_bot_3 = math("h = \\dfrac{a\\sqrt{3}}{2}").move_to(EQ_BOT)
+        box_bot = SurroundingRectangle(eq_bot_3, color=ORANGE, buff=0.2)
+        bot_group = VGroup(
+            eq_tri, eq_labels, altitude, tri_PMR, far_edge_bot, right_mark_bot,
+            ang_60_P, ang_30_R, base_half_label, h_label, h_final_label,
+            bot_caption, eq_bot_1, eq_bot_2, eq_bot_3, box_bot,
+        )
+        old_bot_center = bot_group.get_center()
+        target_bot = DOWN * 1.8
+        bot_group.move_to(target_bot)
+        delta_bot = target_bot - old_bot_center
+        P, Q, R, M = P + delta_bot, Q + delta_bot, R + delta_bot, M + delta_bot
+        self.play(Create(square), Create(eq_tri), run_time=1.3)
+        self.play(Write(sq_labels), Write(eq_labels), run_time=1.0)
+        self.wait(0.3)
+        self.play(Create(diagonal), Create(altitude), run_time=1.0)
+        self.wait(0.2)
+        self.play(
+            FadeOut(far_edges), FadeOut(far_edge_bot),
+            FadeIn(tri_ABC), FadeIn(tri_PMR),
+            FadeOut(sq_labels[2]), FadeOut(sq_labels[3]),
+            FadeOut(eq_labels[1]),
+            run_time=1.0,
+        )
+        self.play(
+            Create(right_mark_top), Create(right_mark_bot),
+            Write(ang_45_A), Write(ang_45_C),
+            Write(ang_60_P), Write(ang_30_R),
+            run_time=1.0,
+        )
+        self.play(
+            Write(c_label), Write(h_label), Write(base_half_label),
+            run_time=0.9,
+        )
+        self.wait(0.3)
+        self.play(Write(top_caption), Write(bot_caption), run_time=0.5)
+        self.play(Write(eq_top_1), Write(eq_bot_1), run_time=1.0)
+        self.wait(0.6)
+        self.play(
+            ReplacementTransform(eq_top_1, eq_top_2),
+            ReplacementTransform(eq_bot_1, eq_bot_2),
+            run_time=1.0,
+        )
+        self.wait(0.4)
+        self.play(
+            ReplacementTransform(eq_top_2, eq_top_3),
+            ReplacementTransform(eq_bot_2, eq_bot_3),
+            run_time=1.0,
+        )
+        self.play(Create(box_top), Create(box_bot), run_time=0.6)
+        self.wait(0.3)
+        self.play(
+            ReplacementTransform(c_label, c_final_label),
+            ReplacementTransform(h_label, h_final_label),
+            run_time=0.9,
+        )
+        self.wait(0.6)
+        x_def = math("x = \\dfrac{a}{2}", scale=0.65).next_to(box_bot, DOWN, buff=0.45)
+        self.play(Write(x_def))
+        self.wait(0.5)
+
+        base_half_label_x = side_label(P, M, "x", DOWN, dist=0.35, scale=0.6)
+        h_final_label_x = side_label(R, M, "x\\sqrt{3}", RIGHT, dist=0.62, scale=0.55)
+        hyp_label_x = side_label(R, P, "2x", unit(np.array([-1, 0.6, 0])), dist=0.4, scale=0.6)
+
+        self.play(
+            ReplacementTransform(base_half_label, base_half_label_x),
+            ReplacementTransform(h_final_label, h_final_label_x),
+            ReplacementTransform(eq_labels[2], hyp_label_x),
+            run_time=1.0,
+        )
+        self.wait(0.4)
+
+        eq_bot_4 = math("h = x\\sqrt{3}").move_to(eq_bot_3)
+        box_bot2 = SurroundingRectangle(eq_bot_4, color=ORANGE, buff=0.2)
+        self.play(
+            ReplacementTransform(eq_bot_3, eq_bot_4),
+            ReplacementTransform(box_bot, box_bot2),
+            run_time=0.9,
+        )
+        self.wait(2)
